@@ -15,17 +15,16 @@ fernet = Fernet(key)
 decrypted_message = fernet.decrypt(encrypted_message)
 OPENAI_API_KEY = decrypted_message.decode()
 
-
-
 def add_bg_from_url():
     st.markdown(
          f"""
          <style>
          .stApp {{
-             background-image: url("https://reemsbucket.s3.us-west-2.amazonaws.com/background.jpeg");
+             background-image: url("https://publicimagesbucket.s3.us-west-2.amazonaws.com/small_chat_alyarz.jpg");
              background-attachment: fixed;
              background-size: cover;
-             color: white;  /* Set text color to white */
+             color: black;
+             padding: 10px;
          }}
          </style>  
          """,
@@ -33,14 +32,27 @@ def add_bg_from_url():
      )
 
 add_bg_from_url()
+st.markdown(
+    """
+    <style>
+    .text-input-label {
+        color: black; /* Set text color to black */
+        margin-bottom: 10px; /* Remove bottom margin */
+        margin-top: 50px; /* Add a top margin */
+        font-size: 25px; /* Set font size to 25 pixels */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 st.markdown(
     """
     <style>
     .text-input-label {
-        color: white; /* Set text color to white */
-        margin-bottom: 0; /* Remove bottom margin */
-        font-size: 18px; /* Set font size to 18 pixels */
+        color: black;
+        margin-bottom: 10px;
+        font-size: 25px;
     }
     </style>
     """,
@@ -48,24 +60,25 @@ st.markdown(
 )
 
 st_version = str(st.__version__)
-st.write('<p class="text-input-label">Tell me something...</p>', unsafe_allow_html=True)
+st.write('<p class="text-input-label">Hi, I am your personalized YarzoBot, ask me something!</p>', unsafe_allow_html=True)
 
 css = '''
     <style>
         .text-container {
             background-color: rgba(255, 255, 255, 0.8);
-            padding: 10px;
+            padding: 20px;  # Increase the padding
             margin-bottom: 10px;
-            color: black; /* Set the text color to black */
+            color: red;  # Change the text color to red
         }
 
         .text-container span {
-            color: black;
+            color: blue;  # Change the span color to blue
         }
     </style>
 '''
 
 st.markdown(css, unsafe_allow_html=True)
+
 
 try:
     index_name = 'v1-index-pinecone'
@@ -79,7 +92,7 @@ try:
     from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
     embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
     db3 = Chroma(persist_directory="./chroma_db", embedding_function=embedding_function)
-    query = "What is the discount in USD on December 2019 ?"
+    query = question
     os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
     model_name = "gpt-3.5-turbo"
     llm = ChatOpenAI(model_name=model_name)
