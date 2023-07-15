@@ -83,8 +83,6 @@ css = '''
 
 st.markdown(css, unsafe_allow_html=True)
 question = st.text_input('', value='', key=None, type='default', help=None)
-st.cache_data
-st.cache_resource
 try:
     index = pinecone.Index(index_name)
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY,model_name="ada")
