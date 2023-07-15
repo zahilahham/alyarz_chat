@@ -1,10 +1,14 @@
-import streamlit as st
 from langchain.vectorstores import Pinecone
+import pinecone
+from credentials_hander import OPENAI_API_KEY
 from langchain.embeddings.openai import OpenAIEmbeddings
+import streamlit as st
+from cryptography.fernet import Fernet
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
-from cryptography.fernet import Fernet
 
+index_name = 'alyarz-pinecone-index'
+text_field = "text"
 
 with open("key.key", "rb") as key_file:
     key =  key_file.read()
@@ -15,6 +19,20 @@ fernet = Fernet(key)
 decrypted_message = fernet.decrypt(encrypted_message)
 OPENAI_API_KEY = decrypted_message.decode()
 
+
+st.markdown(
+    """
+    <style>
+    .title {
+        color: white; /* Set text color to white */
+        font-size: 75px; /* Set font size */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+st.markdown('<h1 class="title">ChatALYarz</h1>', unsafe_allow_html=True)
+
 def add_bg_from_url():
     st.markdown(
          f"""
@@ -23,8 +41,7 @@ def add_bg_from_url():
              background-image: url("https://publicimagesbucket.s3.us-west-2.amazonaws.com/small_chat_alyarz.jpg");
              background-attachment: fixed;
              background-size: cover;
-             color: black;
-             padding: 10px;
+             color: white;  /* Set text color to white */
          }}
          </style>  
          """,
@@ -32,27 +49,14 @@ def add_bg_from_url():
      )
 
 add_bg_from_url()
-st.markdown(
-    """
-    <style>
-    .text-input-label {
-        color: black; /* Set text color to black */
-        margin-bottom: 10px; /* Remove bottom margin */
-        margin-top: 50px; /* Add a top margin */
-        font-size: 25px; /* Set font size to 25 pixels */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 st.markdown(
     """
     <style>
     .text-input-label {
-        color: black;
-        margin-bottom: 10px;
-        font-size: 25px;
+        color: white; /* Set text color to white */
+        margin-bottom: 0; /* Remove bottom margin */
+        font-size: 18px; /* Set font size to 18 pixels */
     }
     </style>
     """,
@@ -60,47 +64,55 @@ st.markdown(
 )
 
 st_version = str(st.__version__)
-st.write('<p class="text-input-label">Hi, I am your personalized YarzoBot, ask me something!</p>', unsafe_allow_html=True)
+st.write('<p class="text-input-label">Tell me something...</p>', unsafe_allow_html=True)
 
 css = '''
     <style>
         .text-container {
             background-color: rgba(255, 255, 255, 0.8);
-            padding: 20px;  # Increase the padding
+            padding: 10px;
             margin-bottom: 10px;
-            color: red;  # Change the text color to red
+            color: black; /* Set the text color to black */
         }
 
         .text-container span {
-            color: blue;  # Change the span color to blue
+            color: black;
         }
     </style>
 '''
 
 st.markdown(css, unsafe_allow_html=True)
-
-
+question = st.text_input('', value='', key=None, type='default', help=None)
+st.cache_data
+st.cache_resource
 try:
-    index_name = 'v1-index-pinecone'
-    text_field = "text"
-    question = st.text_input('', value='', key=None, type='default', help=None)
-    from langchain.chains import RetrievalQA
-    import os
-    from credentials_hander import OPENAI_API_KEY
-    from langchain.chat_models import ChatOpenAI
-    from langchain.vectorstores import Chroma
-    from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-    embedding_function = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-    db3 = Chroma(persist_directory="./chroma_db", embedding_function=embedding_function)
-    query = question
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-    model_name = "gpt-3.5-turbo"
-    llm = ChatOpenAI(model_name=model_name)
-    retrieval_chain = RetrievalQA.from_chain_type(llm, chain_type="stuff", retriever=db3.as_retriever())
-    response = retrieval_chain.run(query)
+    index = pinecone.Index(index_name)
+    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY,model_name="ada")
+    import pinecone
+    pinecone.init(
+        api_key="46b0be1d-d884-49da-a32b-e774dd426b72",
+        environment="asia-southeast1-gcp-free"
+    )
+    vectorstore = Pinecone(
+            index, embeddings.embed_query, text_field
+        )
+    llm = ChatOpenAI(
+        openai_api_key=OPENAI_API_KEY,
+        model_name='gpt-3.5-turbo',
+        temperature=0.0
+    )
+
+    qa = RetrievalQA.from_chain_type(
+            llm=llm,
+            chain_type="stuff",
+            retriever=vectorstore.as_retriever()
+        )
+    
+    response = qa.run(question)
     if question:
         st.markdown(f'<div class="text-container"><span>You:</span> {question}</div>', unsafe_allow_html=True)
         st.markdown(f'<div class="text-container"><span>YarzoBot:</span> {response}</div>', unsafe_allow_html=True)
 
 except Exception as e:
     response = None
+    print("error = " + str(e))
