@@ -9,6 +9,7 @@ from langchain.chains import RetrievalQA
 
 index_name = 'alyarz-pinecone-index'
 text_field = "text"
+st.set_page_config(page_title='YarzoBot', page_icon='https://publicimagesbucket.s3.us-west-2.amazonaws.com/alyarz_logo.png')
 
 with open("key.key", "rb") as key_file:
     key =  key_file.read()
@@ -80,7 +81,7 @@ css = '''
         }
     </style>
 '''
-
+# Set page configuration
 st.markdown(css, unsafe_allow_html=True)
 question = st.text_input('', value='', key=None, type='default', help=None)
 try:
