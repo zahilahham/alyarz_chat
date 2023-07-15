@@ -32,7 +32,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-st.markdown('<h1 class="title">ChatALYarz</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="title">YarzoBot</h1>', unsafe_allow_html=True)
 
 def add_bg_from_url():
     st.markdown(
@@ -65,14 +65,14 @@ st.markdown(
 )
 
 st_version = str(st.__version__)
-st.write('<p class="text-input-label">Tell me something...</p>', unsafe_allow_html=True)
+st.write('<p class="text-input-label">Ask me anything...</p>', unsafe_allow_html=True)
 
 css = '''
     <style>
         .text-container {
             background-color: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 2px;
+            margin-bottom: 2px;
             color: black; /* Set the text color to black */
         }
 
